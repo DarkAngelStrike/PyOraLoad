@@ -1,8 +1,4 @@
-#!/usr/bin/python
-
-# This software can be freely modified, embedded and redistributed under LGPL.
-# http://www.gnu.org/copyleft/lesser.html
-# Copyright Kazuki Nakajima <nkjm.kzk@gmail.com>
+#!/usr/bin/python3
 
 import optparse
 import random
@@ -13,12 +9,12 @@ import time
 try:
     import interview
 except:
-    print "Failed to import interview.py. Pls check if you have installed interview.py under /usr/lib/python2.4/site-packages/. You can get interview.py from http://github.com/nkjm."
+    print ("Failed to import interview.py. Pls check if you have installed interview.py under /usr/lib/python2.4/site-packages/. You can get interview.py from http://github.com/nkjm.")
     sys.exit()
 try:
     import cx_Oracle
 except:
-    print "Failed to import cx_Oracle.so. Pls check if you have installed cx_Oracle and also check if your LD_LIBRARY_PATH includes $ORACLE_HOME/lib."
+    print ("Failed to import cx_Oracle.so. Pls check if you have installed cx_Oracle and also check if your LD_LIBRARY_PATH includes $ORACLE_HOME/lib.")
     sys.exit()
 
 ### Configuration Area ###
@@ -33,7 +29,7 @@ default_service = ''
 
 commit_ratio = 10
 table_name = 'oraload'
-global count_now 
+global count_now
 
 class Load(threading.Thread):
     def __init__(self, user, password, ip, service, op, table_name, commit_ratio, count_per_thread, id, lock):
@@ -56,9 +52,9 @@ class Load(threading.Thread):
         self.lock.acquire()
         try:
             conn = cx_Oracle.connect(self.user, self.password, self.ip + '/' + self.service, threaded=True)
-        except cx_Oracle.DatabaseError,cx_msg:
-            print "[ERROR]\tFailed to connect to Database."
-            print cx_msg
+        except cx_Oracle.DatabaseError as cx_msg:
+            print ("[ERROR]\tFailed to connect to Database.")
+            print (cx_msg)
             sys.exit()
         cur = conn.cursor()
         self.lock.release()
@@ -92,9 +88,9 @@ Yours are the sweetest eyes I've ever seen""".replace("'", "")
             for i in range(self.count_per_thread):
                 try:
                     cur.execute(sql)
-                except cx_Oracle.DatabaseError,cx_msg:
-                    print "[ERROR]\tFailed SQL: %s" % sql
-                    print cx_msg
+                except cx_Oracle.DatabaseError as cx_msg:
+                    print ("[ERROR]\tFailed SQL: %s" % sql)
+                    print (cx_msg)
                     sys.exit()
                 commit_count += 1
                 if commit_count >= commit_ratio:
@@ -107,13 +103,13 @@ Yours are the sweetest eyes I've ever seen""".replace("'", "")
             sql = 'select max(record_id) from %s' % self.table_name
             try:
                 cur.execute(sql)
-            except cx_Oracle.DatabaseError,cx_msg:
-                print "[ERROR]\tFailed SQL: %s" % sql
-                print cx_msg
+            except cx_Oracle.DatabaseError as cx_msg:
+                print ("[ERROR]\tFailed SQL: %s" % sql)
+                print (cx_msg)
                 sys.exit()
             row = cur.fetchone()
             if not row[0]:
-                print "There is no record."
+                print ("There is no record.")
                 sys.exit()
             total_rows = int(row[0])
             for i in range(self.count_per_thread):
@@ -121,9 +117,9 @@ Yours are the sweetest eyes I've ever seen""".replace("'", "")
                 sql = 'select * from %s where record_id = %d' % (self.table_name, needle)
                 try:
                     cur.execute(sql)
-                except cx_Oracle.DatabaseError,cx_msg:
-                    print "[ERROR]\tFailed SQL: %s" % sql
-                    print cx_msg
+                except cx_Oracle.DatabaseError as cx_msg:
+                    print ("[ERROR]\tFailed SQL: %s" % sql)
+                    print (cx_msg)
                     sys.exit()
                 rows = cur.fetchone()
                 count_now[self.id] = i + 1
@@ -147,14 +143,14 @@ class Counter(threading.Thread):
             for i in count_now:
                 count_now_sum += i
             tps = count_now_sum - count_now_sum_prev
-            print "TPS:\t%d" % tps
+            print ("TPS:\t%d" % tps)
             count_now_sum_prev = count_now_sum
 
 
 if __name__ == "__main__":
     usage = './oraload.py [OPTIONS]'
     version = '0.9'
-    
+
     p = optparse.OptionParser(usage=usage, version=version)
     p.add_option("-u", "--user", action="store", type="string", dest="user", help="User Name")
     p.add_option("-p", "--password", action="store", type="string", dest="password", help="User Password")
@@ -164,9 +160,9 @@ if __name__ == "__main__":
     p.add_option("-c", "--count", action="store", type="string", dest="count", help="Number of Queries to be produced")
     p.add_option("-t", "--thread", action="store", type="string", dest="thread", help="Number of Threads to be launched")
     (opts, args) = p.parse_args()
-    
+
     intvw = interview.Interview()
-    print ''
+    print ('')
 
     ### Set ip
     ip = intvw.ask_new_name(question='DB IP Address', input=opts.ip, default=default_ip)
@@ -179,9 +175,9 @@ if __name__ == "__main__":
     if (len(sys_user) != 0 and len(sys_password) != 0):
         try:
             conn_sysdba = cx_Oracle.connect(sys_user, sys_password, ip + '/' + service, cx_Oracle.SYSDBA)
-        except cx_Oracle.DatabaseError,cx_msg:
-            print "[ERROR]\tFailed to connect to Database as sysdba."
-            print cx_msg
+        except cx_Oracle.DatabaseError as cx_msg:
+            print ("[ERROR]\tFailed to connect to Database as sysdba.")
+            print (cx_msg)
             sys.exit()
 
     ### Fetch candidate User List
@@ -191,9 +187,9 @@ if __name__ == "__main__":
         sql = 'select username from dba_users'
         try:
             cur.execute(sql)
-        except cx_Oracle.DatabaseError,cx_msg:
-            print "[ERROR]\tFailed SQL: %s" % sql
-            print cx_msg
+        except cx_Oracle.DatabaseError as cx_msg:
+            print ("[ERROR]\tFailed SQL: %s" % sql)
+            print (cx_msg)
             sys.exit()
         rows = cur.fetchall()
         for row in rows:
@@ -208,15 +204,15 @@ if __name__ == "__main__":
         sql = 'select name from v$tablespace'
         try:
             cur.execute(sql)
-        except cx_Oracle.DatabaseError,cx_msg:
-            print "[ERROR]\tFailed SQL: %s" % sql
-            print cx_msg
+        except cx_Oracle.DatabaseError as cx_msg:
+            print ("[ERROR]\tFailed SQL: %s" % sql)
+            print (cx_msg)
             sys.exit()
         rows = cur.fetchall()
         for row in rows:
             array_tablespace_list.append(row[0])
         cur.close()
-    
+
     ### Set "user"
     if opts.user is not None:
         input_user = opts.user.upper()
@@ -241,12 +237,12 @@ if __name__ == "__main__":
             for sql in sqls:
                 try:
                     cur.execute(sql)
-                except cx_Oracle.DatabaseError,cx_msg:
-                    print "[ERROR]\tFailed SQL: %s" % sql
-                    print cx_msg
+                except cx_Oracle.DatabaseError as cx_msg:
+                    print ("[ERROR]\tFailed SQL: %s" % sql)
+                    print (cx_msg)
                     sys.exit()
             cur.close()
-            print 'New User has been created.\n'
+            print ('New User has been created.\n')
         else:
             ### Set password
             password = intvw.ask_new_name(question="PASSWORD", input=opts.password, default=default_password)
@@ -257,55 +253,55 @@ if __name__ == "__main__":
     if conn_sysdba:
         conn_sysdba.close()
 
-    
+
     ### Check if table exists. If there is not, create it.
     try:
         conn = cx_Oracle.connect(user, password, ip + '/' + service)
-    except cx_Oracle.DatabaseError,cx_msg:
-        print "[ERROR]\tFailed to connect to Database."
-        print cx_msg
+    except cx_Oracle.DatabaseError as cx_msg:
+        print ("[ERROR]\tFailed to connect to Database.")
+        print (cx_msg)
         sys.exit()
     cur = conn.cursor()
     sql = "select table_name from user_tables where table_name = '%s'" % table_name.upper()
     try:
         cur.execute(sql)
-    except cx_Oracle.DatabaseError,cx_msg:
-        print "[ERROR]\tFailed SQL: %s" % sql
-        print cx_msg
+    except cx_Oracle.DatabaseError as cx_msg:
+        print ("[ERROR]\tFailed SQL: %s" % sql)
+        print (cx_msg)
         sys.exit()
     rows = cur.fetchone()
     if not rows:
-        print "Table has not been created yet. Create it right now? [y/n]: ",
+        print ("Table has not been created yet. Create it right now? [y/n]: ",)
         if intvw.ask_yes_or_no() == 'no':
             sys.exit()
         sql = "create table %s (record_id number, title varchar(64), artist varchar(32), lyrics varchar(2048), primary key(record_id))" % table_name
         try:
             cur.execute(sql)
-        except cx_Oracle.DatabaseError,cx_msg:
-            print "[ERROR]\tFailed SQL: %s" % sql
-            print cx_msg
+        except cx_Oracle.DatabaseError as cx_msg:
+            print ("[ERROR]\tFailed SQL: %s" % sql)
+            print (cx_msg)
             sys.exit()
-        print "\nDone.\n"
+        print ("\nDone.\n")
     sql = "select sequence_name from user_sequences where sequence_name = 'RECORD_ID_SEQ'"
     try:
         cur.execute(sql)
-    except cx_Oracle.DatabaseError,cx_msg:
-        print "[ERROR]\tFailed SQL: %s" % sql
-        print cx_msg
+    except cx_Oracle.DatabaseError as cx_msg:
+        print ("[ERROR]\tFailed SQL: %s" % sql)
+        print (cx_msg)
         sys.exit()
     rows = cur.fetchone()
     if not rows:
-        print "Sequence has not been created yet. Create it right now [y/n]: ",
+        print ("Sequence has not been created yet. Create it right now [y/n]: ",)
         if intvw.ask_yes_or_no() == 'no':
             sys.exit()
         sql = "create sequence record_id_seq"
         try:
             cur.execute(sql)
-        except cx_Oracle.DatabaseError,cx_msg:
-            print "[ERROR]\tFailed SQL: %s" % sql
-            print cx_msg
+        except cx_Oracle.DatabaseError as cx_msg:
+            print ("[ERROR]\tFailed SQL: %s" % sql)
+            print (cx_msg)
             sys.exit()
-        print "\nDone.\n"
+        print ("\nDone.\n")
     cur.close()
     conn.close()
 
@@ -317,28 +313,28 @@ if __name__ == "__main__":
     if op == 'select':
         try:
             conn = cx_Oracle.connect(user, password, ip + '/' + service)
-        except cx_Oracle.DatabaseError,cx_msg:
-            print "[ERROR]\tFailed to connect to Database."
-            print cx_msg
+        except cx_Oracle.DatabaseError as cx_msg:
+            print ("[ERROR]\tFailed to connect to Database.")
+            print (cx_msg)
             sys.exit()
         cur = conn.cursor()
         sql = 'select max(record_id) from %s' % table_name
         try:
             cur.execute(sql)
-        except cx_Oracle.DatabaseError,cx_msg:
-            print "[ERROR]\tFailed SQL: %s" % sql
-            print cx_msg
+        except cx_Oracle.DatabaseError as cx_msg:
+            print ("[ERROR]\tFailed SQL: %s" % sql)
+            print (cx_msg)
             sys.exit()
         row = cur.fetchone()
         if not row[0]:
-            print "There is no record.\n"
+            print ("There is no record.\n")
             sys.exit()
         cur.close()
         conn.close()
-    
+
     ### Set "count"
     count = intvw.ask_number(question="Number of Queries", input=opts.count, default=None)
-    
+
     ### Set "threads"
     threads = intvw.ask_number(question="Number of Threads", input=opts.thread, default=1)
     count_per_thread = int(round(count / threads))
@@ -358,9 +354,9 @@ if __name__ == "__main__":
     time_start = time.time()
 
     for load in loads:
-        print "#%s taking off..." % load.getName()
+        print ("#%s taking off..." % load.getName())
         load.start()
-    print ''
+    print ('')
 
     counter = Counter()
     counter.start()
@@ -371,8 +367,6 @@ if __name__ == "__main__":
     time_elapsed = time_end - time_start
     tps = round(count / time_elapsed)
 
-    print ""
-    print "TPS Average:\t%d" % tps
-    print ""
-
-
+    print ("")
+    print ("TPS Average:\t%d" % tps)
+    print ("")
